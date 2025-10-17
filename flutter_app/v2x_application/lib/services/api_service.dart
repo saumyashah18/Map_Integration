@@ -127,68 +127,15 @@ class ApiService {
   /// Query pedestrians within great-circle `distanceMeters` of (lat, lon)
   /// Expects server endpoint: GET /pedestrians/nearby?lat={lat}&lon={lon}&r={meters}
   Future<List<Pedestrian>> queryByDistance(double lat, double lon, double rMeters) async {
-    // Strategy:
-    // 1) Try to call server-side nearby endpoint if available (fast). If it fails,
-    // 2) fallback: fetch all pedestrians, prefilter by Haversine with a slightly
-    //    expanded radius, then compute road distance via OSRM per candidate and
-    //    return those within rMeters.
-
-    // Attempt server-side endpoint first
-    try {
-      final url = Uri.parse('$baseUrl/pedestrians/nearby?lat=$lat&lon=$lon&r=$rMeters');
-      final response = await http.get(url);
-      if (response.statusCode == 200) {
-        final data = json.decode(response.body);
-        if (data is List) {
-          return data.map((e) => Pedestrian.fromMap(Map<String, dynamic>.from(e))).toList();
-        }
-      }
-    } catch (e) {
-      debugPrint('Server-side nearby endpoint not available or failed: $e');
-    }
-
-    // Fallback strategy: client-side filtering + OSRM routing
+    // Temporary placeholder implementation (no external routing APIs):
+    // Perform a simple great-circle (Haversine) filter using `withinDisplacement`.
+    // This will be replaced later with a proper road-distance (routing) implementation.
     final all = await fetchPedestrians();
-    final candidates = all.map((m) => Pedestrian.fromMap(m)).where((p) {
-      // prefilter by Haversine with a small buffer to reduce OSRM calls
-      return dc.withinDistance(lat, lon, p.lat, p.lon, rMeters * 1.5);
+    final list = all.map((m) => Pedestrian.fromMap(m)).where((p) {
+      // Use displacement (great-circle) as a placeholder for road distance
+      return dc.withinDisplacement(lat, lon, p.lat, p.lon, rMeters);
     }).toList();
-
-    // Helper to call OSRM route and return distance in meters
-    Future<double> _roadDistance(Pedestrian p) async {
-      final osrmBase = 'https://router.project-osrm.org';
-      try {
-        final coords = '${lon.toString()},${lat.toString()};${p.lon.toString()},${p.lat.toString()}';
-        final url = Uri.parse('$osrmBase/route/v1/driving/$coords?overview=false');
-        final res = await http.get(url).timeout(const Duration(seconds: 6));
-        if (res.statusCode != 200) {
-          debugPrint('OSRM non-200: ${res.statusCode}');
-          return dc.distanceMeters(lat, lon, p.lat, p.lon); // fallback to geodesic
-        }
-        final j = json.decode(res.body);
-        if (j['routes'] is List && j['routes'].isNotEmpty) {
-          final route = j['routes'][0];
-          final d = (route['distance'] is num) ? (route['distance'] as num).toDouble() : double.parse(route['distance'].toString());
-          return d; // meters
-        }
-        return dc.distanceMeters(lat, lon, p.lat, p.lon);
-      } catch (e) {
-        debugPrint('OSRM error: $e');
-        return dc.distanceMeters(lat, lon, p.lat, p.lon);
-      }
-    }
-
-    // Limit concurrency to avoid aggressive OSRM calls; process in small batches
-    final results = <Pedestrian>[];
-    const batchSize = 8;
-    for (var i = 0; i < candidates.length; i += batchSize) {
-      final batch = candidates.skip(i).take(batchSize).toList();
-      final distances = await Future.wait(batch.map(_roadDistance));
-      for (var j = 0; j < batch.length; j++) {
-        if (distances[j] <= rMeters) results.add(batch[j]);
-      }
-    }
-    return results;
+    return list;
   }
 
   /// Query pedestrians within displacement radius `rMeters` using server-side projection

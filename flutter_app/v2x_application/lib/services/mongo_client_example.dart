@@ -3,6 +3,7 @@
 // communicates with a Flask backend by default. Use this for quick manual
 // DB work or to prototype server endpoints in Dart.
 
+import 'dart:io';
 import 'package:mongo_dart/mongo_dart.dart';
 import '../models/pedestrian.dart';
 import '../utils/distance_calculator.dart' as dc;
@@ -67,3 +68,37 @@ class MongoExample {
     return list;
   }
 }
+
+// Simple CLI seeder. Run with a Mongo URI as the first argument or set MONGO_URI
+// env var. Example:
+//   dart run lib/services/mongo_client_example.dart mongodb://localhost:27017/v2x
+// This will insert a few sample pedestrians with uid/timestamp/lat/lon.
+Future<void> main(List<String> args) async {
+  final uri = args.isNotEmpty ? args[0] : (Platform.environment['MONGO_URI'] ?? 'mongodb://localhost:27017/v2x');
+  final example = MongoExample(uri: uri);
+  try {
+    await example.open();
+    final samples = [
+      Pedestrian(uid: 'p_sample_1', lat: 51.5007, lon: -0.1246, timestamp: DateTime.now()),
+      Pedestrian(uid: 'p_sample_2', lat: 51.5010, lon: -0.1250, timestamp: DateTime.now().subtract(const Duration(minutes: 5))),
+      Pedestrian(uid: 'p_sample_3', lat: 51.4995, lon: -0.1240, timestamp: DateTime.now().subtract(const Duration(minutes: 10))),
+    ];
+
+    for (final p in samples) {
+      try {
+        final existing = await example.getById(p.uid);
+        if (existing == null) {
+          final created = await example.create(p);
+          print('Inserted: ${created.uid}');
+        } else {
+          print('Exists: ${p.uid}');
+        }
+      } catch (e) {
+        print('Error inserting ${p.uid}: $e');
+      }
+    }
+  } finally {
+    await example.close();
+  }
+}
+
