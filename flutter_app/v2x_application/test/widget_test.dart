@@ -10,23 +10,10 @@ import 'package:flutter_test/flutter_test.dart';
 
 import 'package:v2x_application/main.dart';
 
-// Make sure MyApp is defined in main.dart, or replace MyApp with the correct class name.
-// For example, if your main widget is named V2XApp, use V2XApp instead of MyApp.
-
 void main() {
-  testWidgets('Counter increments smoke test', (WidgetTester tester) async {
-    // Build our app and trigger a frame.
+  testWidgets('App builds and shows map screen title', (WidgetTester tester) async {
     await tester.pumpWidget(const V2XApp());
-
-    expect(find.text('0'), findsOneWidget);
-    expect(find.text('1'), findsNothing);
-
-    // Tap the '+' icon and trigger a frame.
-    await tester.tap(find.byIcon(Icons.add));
-    await tester.pump();
-
-    // Verify that our counter has incremented.
-    expect(find.text('0'), findsNothing);
-    expect(find.text('1'), findsOneWidget);
+    // MapScreen AppBar title is "V2X Pedestrian Alert System"
+    expect(find.text('V2X Pedestrian Alert System'), findsOneWidget);
   });
 }

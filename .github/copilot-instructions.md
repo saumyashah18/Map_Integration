@@ -8,8 +8,8 @@ High-level architecture
 - Backend integration: `lib/services/api_service.dart` communicates with a Flask backend using three endpoints: `/get-pedestrians`, `/update-location`, `/update-pedestrian`.
 
 Key data shapes and contracts
-- `ApiService.fetchPedestrians()` returns a List of maps: each item expected to contain `{ "id": "p1", "lat": <double>, "lon": <double> }`.
-- Until `lib/models/pedestrian.dart` is implemented, code uses Map<String, dynamic> for pedestrian records (do not assume a typed model exists).
+- `ApiService.fetchPedestrians()` returns a List of maps: each item expected to contain `{ "id": "p1", "lat": <double>, "lon": <double> }` (UI expects `lat`/`lon`).
+- A typed model now exists at `lib/models/pedestrian.dart` (class `Pedestrian` with `uid`, `lat`, `lon`, `timestamp`). Backend JSON may use `id`/`_id`/`uid` and timestamps as ISO strings or epoch ms — `Pedestrian.fromMap` normalizes them.
 
 Important implementation patterns to follow
 - Map + location handling: `lib/screens/map_screen.dart` uses `geolocator`'s position stream and `flutter_map`'s `MapController`.
@@ -20,7 +20,9 @@ Important implementation patterns to follow
 
 Project-specific conventions
 - Keep API base URL in `lib/services/api_service.dart` (static const `baseUrl`). The repo currently uses an ephemeral ngrok URL — update it for local testing or CI.
-- Use Maps as the pedestrian record type until `lib/models/pedestrian.dart` is populated. `lib/utils/distance_calculator.dart` is currently empty and intended for distance/alert logic — new helpers should be added there.
+- Prefer using the typed `Pedestrian` model in new logic; existing API helpers still accept raw Maps. `Pedestrian.toMap()` serializes `timestamp` as ISO string.
+- Distance helpers live in `lib/utils/distance_calculator.dart`: use `distanceMeters()` (Haversine) for geodesic distance and `displacementMeters()`/`displacementLength()` for equirectangular displacement and vector math.
+- A developer-side example direct Mongo client is available at `lib/services/mongo_client_example.dart` using `mongo_dart`. The canonical app path is via the Flask backend; the mongo example is optional for prototyping.
 - Linting & analysis: `analysis_options.yaml` + `flutter_lints` are enabled. Run `flutter analyze` and fix offenses to keep changes consistent with the repo style.
 
 Developer workflows & commands
@@ -43,8 +45,9 @@ Integration & troubleshooting tips
 
 Files you will edit most often
 - UI: `lib/screens/map_screen.dart`
-- Network: `lib/services/api_service.dart`
+- Network: `lib/services/api_service.dart` (now contains CRUD: `createPedestrian`, `getPedestrian`, `updatePedestrianById`, `deletePedestrian`, plus `queryByDistance` and `queryByDisplacement`).
 - Models/helpers: `lib/models/pedestrian.dart`, `lib/utils/distance_calculator.dart`
+- Optional DB helper: `lib/services/mongo_client_example.dart` (direct Mongo demos using `mongo_dart`).
 - Entry point: `lib/main.dart`
 
 Where to be conservative and why
