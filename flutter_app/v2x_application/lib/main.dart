@@ -1,6 +1,19 @@
 import 'package:flutter/material.dart';
-import 'screens/map_screen.dart'; // Import your map screen
+import 'screens/Dashboard.dart'; // Import your map screen
+import 'dart:io';
 
+
+class MyHttpOverrides extends HttpOverrides {
+  @override
+  HttpClient createHttpClient(SecurityContext? context) {
+    final client = super.createHttpClient(context);
+    client.badCertificateCallback = (X509Certificate cert, String host, int port) {
+      // WARNING: dev-only. Replace host check or remove in production.
+      return host == 'frothy-bebe-sirenically.ngrok-free.dev';
+    };
+    return client;
+  }
+}
 void main() {
   runApp(const V2XApp());
 }
@@ -20,3 +33,5 @@ class V2XApp extends StatelessWidget {
     );
   }
 }
+
+

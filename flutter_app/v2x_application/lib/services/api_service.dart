@@ -1,12 +1,12 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import '../models/pedestrian.dart';
+import '../models/RSU.dart';
 import '../utils/distance_calculator.dart' as dc;
 
 class ApiService {
   // 🌍 Replace this with your current ngrok public URL
-  static const String baseUrl = "https://jeneva-chylocaulous-vocatively.ngrok-free.dev";
+  static const String baseUrl = "https://frothy-bebe-sirenically.ngrok-free.dev";
 
   // 🚶 Fetch all pedestrian coordinates
   // Returns a List of maps like: [{"id": "p1", "lat": 12.34, "lon": 56.78}, ...]
