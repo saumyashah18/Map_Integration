@@ -40,7 +40,8 @@ class Pedestrian {
 
 	Map<String, dynamic> toMap() {
 		return {
-			'uid': uid,
+			'Ruid': uid,
+			'Guid': uid,
 			'lat': lat,
 			'lon': lon,
 			'timestamp': timestamp.toIso8601String(),
