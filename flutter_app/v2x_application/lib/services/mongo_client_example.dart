@@ -5,7 +5,7 @@
 
 import 'dart:io';
 import 'package:mongo_dart/mongo_dart.dart';
-import '../models/pedestrian.dart';
+import '../models/RSU.dart';
 import '../utils/distance_calculator.dart' as dc;
 
 /// Example: connect using a MongoDB connection string

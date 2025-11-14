@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-import '../models/pedestrian.dart';
+import '../models/RSU.dart';
 import '../utils/distance_calculator.dart' as dc;
 
 class ApiService {

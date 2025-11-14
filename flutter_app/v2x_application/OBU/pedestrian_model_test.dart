@@ -1,5 +1,5 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:v2x_application/models/pedestrian.dart';
+import 'package:v2x_application/models/RSU.dart';
 
 void main() {
   test('fromMap accepts id/_id/uid and parses timestamps', () {
