@@ -26,64 +26,90 @@ class _MapScreenState extends State<MapScreen> {
   }
 
   // 🛰️ Get user's current live location
-  Future<void> _getCurrentLocation() async {
-    bool serviceEnabled;
-    LocationPermission permission;
+Future<void> _getCurrentLocation() async {
+  bool serviceEnabled;
+  LocationPermission permission;
 
-    serviceEnabled = await Geolocator.isLocationServiceEnabled();
-    if (!serviceEnabled) {
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Please enable location services.")),
-        );
-      }
-      return;
+  // 1) Check if location services are enabled
+  serviceEnabled = await Geolocator.isLocationServiceEnabled();
+  if (!serviceEnabled) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text("Please enable location services.")),
+      );
     }
+    return;
+  }
 
-    permission = await Geolocator.checkPermission();
+  // 2) Check permission
+  permission = await Geolocator.checkPermission();
+  if (permission == LocationPermission.denied) {
+    permission = await Geolocator.requestPermission();
     if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-      if (permission == LocationPermission.denied) {
-        if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Location permission denied.")),
-          );
-        }
-        return;
-      }
-    }
-
-    if (permission == LocationPermission.deniedForever) {
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text("Location permissions permanently denied.")),
+          const SnackBar(content: Text("Location permission denied.")),
         );
       }
       return;
     }
+  }
+
+  if (permission == LocationPermission.deniedForever) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text("Location permissions permanently denied."),
+        ),
+      );
+    }
+    return;
+  }
+
+  // 3) Get an initial position immediately
+  try {
+    final pos = await Geolocator.getCurrentPosition(
+      desiredAccuracy: LocationAccuracy.high,
+    );
+
+    setState(() {
+      _currentLocation = LatLng(pos.latitude, pos.longitude);
+    });
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        _mapController.move(_currentLocation!, 17);
+      } catch (e) {
+        debugPrint('Initial map move failed: $e');
+      }
+    });
+  } catch (e) {
+    debugPrint('Error getting initial position: $e');
+  }
 
     // Listen for position changes
-    Geolocator.getPositionStream(
-      locationSettings: const LocationSettings(
-        accuracy: LocationAccuracy.high,
-        distanceFilter: 3,
-      ),
-    ).listen((Position position) {
-      setState(() {
-        _currentLocation = LatLng(position.latitude, position.longitude);
-      });
-      // Ensure the map has been rendered before moving the camera.
-      WidgetsBinding.instance.addPostFrameCallback((_) {
-        try {
-          _mapController.move(_currentLocation!, 17);
-        } catch (e) {
-          // If MapController isn't ready yet, ignore and it will be moved when the map renders or next position update
-          // ignore: avoid_print
-          debugPrint('MapController move skipped (not ready yet): $e');
-        }
-      });
+  Geolocator.getPositionStream(
+    locationSettings: const LocationSettings(
+      accuracy: LocationAccuracy.best, // as precise as possible
+      distanceFilter: 0,               // update on every tiny move (for testing)
+    ),
+  ).listen((Position position) {
+    debugPrint(
+        'New live position: ${position.latitude}, ${position.longitude}');
+
+    setState(() {
+      _currentLocation = LatLng(position.latitude, position.longitude);
     });
-  }
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      try {
+        _mapController.move(_currentLocation!, 17);
+      } catch (e) {
+        debugPrint('MapController move skipped (not ready yet): $e');
+      }
+    });
+  });
+}
 
   // 🌐 Fetch pedestrian data from API
   Future<void> _fetchPedestrians() async {
