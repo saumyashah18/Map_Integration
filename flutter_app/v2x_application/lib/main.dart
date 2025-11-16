@@ -1,9 +1,5 @@
 import 'package:flutter/material.dart';
 import 'screens/Dashboard.dart'; // Import your map screen
-<<<<<<< HEAD
-import 'dart:io';
-=======
->>>>>>> 9f1ec7bd36fd8e6d890f71bd07a90eb9793cf710
 
 
 class MyHttpOverrides extends HttpOverrides {

@@ -3,21 +3,12 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
-<<<<<<< HEAD
-=======
-
->>>>>>> 9f1ec7bd36fd8e6d890f71bd07a90eb9793cf710
 import '../models/RSU.dart';
 import '../utils/distance_calculator.dart' as dc;
 
 class ApiService {
-<<<<<<< HEAD
-  // 🌍 Replace this with your current ngrok public URL
-  static const String baseUrl = "https://frothy-bebe-sirenically.ngrok-free.dev";
-=======
   static const String baseUrl =
       "https://frothy-bebe-sirenically.ngrok-free.dev";
->>>>>>> 9f1ec7bd36fd8e6d890f71bd07a90eb9793cf710
 
   // 🚶 Fetch all pedestrian alerts from Flask
   Future<List<Pedestrian>> fetchPedestrians() async {
