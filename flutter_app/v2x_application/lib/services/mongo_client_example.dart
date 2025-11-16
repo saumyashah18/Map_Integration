@@ -79,22 +79,22 @@ Future<void> main(List<String> args) async {
   try {
     await example.open();
     final samples = [
-      Pedestrian(uid: 'p_sample_1', lat: 51.5007, lon: -0.1246, timestamp: DateTime.now()),
-      Pedestrian(uid: 'p_sample_2', lat: 51.5010, lon: -0.1250, timestamp: DateTime.now().subtract(const Duration(minutes: 5))),
-      Pedestrian(uid: 'p_sample_3', lat: 51.4995, lon: -0.1240, timestamp: DateTime.now().subtract(const Duration(minutes: 10))),
+      Pedestrian(id: 'p_sample_1', lat: 51.5007, lon: -0.1246, timestamp: DateTime.now(), pedestriansCount: 0, rsuId: '', obuId: ''),
+      Pedestrian(id: 'p_sample_2', lat: 51.5010, lon: -0.1250, timestamp: DateTime.now().subtract(const Duration(minutes: 5)), pedestriansCount: 0, rsuId: '', obuId: ''),
+      Pedestrian(id: 'p_sample_3', lat: 51.4995, lon: -0.1240, timestamp: DateTime.now().subtract(const Duration(minutes: 10)), pedestriansCount: 0, rsuId: '', obuId: ''),
     ];
 
     for (final p in samples) {
       try {
-        final existing = await example.getById(p.uid);
+        final existing = await example.getById(p.id);
         if (existing == null) {
           final created = await example.create(p);
-          print('Inserted: ${created.uid}');
+          print('Inserted: ${created.id}');
         } else {
-          print('Exists: ${p.uid}');
+          print('Exists: ${p.id}');
         }
       } catch (e) {
-        print('Error inserting ${p.uid}: $e');
+        print('Error inserting ${p.id}: $e');
       }
     }
   } finally {

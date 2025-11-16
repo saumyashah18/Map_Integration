@@ -7,8 +7,12 @@ import '../models/RSU.dart';
 import '../utils/distance_calculator.dart' as dc;
 
 class ApiService {
-  static const String baseUrl =
-      "https://frothy-bebe-sirenically.ngrok-free.dev";
+  static const String defaultBaseUrl = "https://jeneva-chylocaulous-vocatively.ngrok-free.dev";
+
+  /// The base URL used for requests. It can be updated at runtime.
+  String baseUrl;
+
+  ApiService({String? baseUrl}) : baseUrl = baseUrl ?? defaultBaseUrl;
 
   // 🚶 Fetch all pedestrian alerts from Flask
   Future<List<Pedestrian>> fetchPedestrians() async {
@@ -40,13 +44,13 @@ class ApiService {
       if (data is List) {
         return data
             .map<Pedestrian>((e) => Pedestrian.fromMap(
-                  Map<String, dynamic>.from(e as Map),
+                  Map<String, dynamic>.from(e),
                 ))
             .toList();
       } else if (data is Map) {
         return [
           Pedestrian.fromMap(
-            Map<String, dynamic>.from(data as Map),
+            Map<String, dynamic>.from(data),
           ),
         ];
       } else {
@@ -58,6 +62,12 @@ class ApiService {
       debugPrint('API Exception (fetchPedestrians): $e');
       rethrow;
     }
+  }
+
+  /// Update the baseUrl used by this ApiService instance.
+  void updateBaseUrl(String url) {
+    baseUrl = url;
+    debugPrint('ApiService baseUrl updated to: $baseUrl');
   }
 
   // 🚗 Send current vehicle coordinates to Flask

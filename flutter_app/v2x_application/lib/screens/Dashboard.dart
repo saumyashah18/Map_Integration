@@ -160,6 +160,42 @@ class _MapScreenState extends State<MapScreen> {
             icon: const Icon(Icons.refresh),
             onPressed: _fetchPedestrians,
           ),
+          IconButton(
+            icon: const Icon(Icons.settings),
+            tooltip: 'Set API base URL',
+            onPressed: () async {
+              final controller = TextEditingController(text: _apiService.baseUrl);
+              final result = await showDialog<String>(
+                context: context,
+                builder: (context) => AlertDialog(
+                  title: const Text('API Base URL'),
+                  content: TextField(
+                    controller: controller,
+                    keyboardType: TextInputType.url,
+                    decoration: const InputDecoration(
+                      hintText: 'https://<your-ngrok-id>.ngrok-free.app',
+                    ),
+                  ),
+                  actions: [
+                    TextButton(
+                      onPressed: () => Navigator.of(context).pop(null),
+                      child: const Text('Cancel'),
+                    ),
+                    ElevatedButton(
+                      onPressed: () => Navigator.of(context).pop(controller.text.trim()),
+                      child: const Text('Save'),
+                    ),
+                  ],
+                ),
+              );
+
+              if (result != null && result.isNotEmpty) {
+                _apiService.updateBaseUrl(result);
+                _showMsg('Base URL updated');
+                await _fetchPedestrians();
+              }
+            },
+          ),
         ],
       ),
 
