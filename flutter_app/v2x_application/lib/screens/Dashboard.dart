@@ -1,9 +1,11 @@
+// ignore: file_names
 import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:latlong2/latlong.dart';
+import 'package:http/http.dart' as http;
 
 import '../services/api_service.dart';
 import '../models/RSU.dart'; // for Pedestrian
@@ -53,6 +55,7 @@ class _MapScreenState extends State<MapScreen> {
     // Get initial position once (so we can center quickly)
     try {
       final pos = await Geolocator.getCurrentPosition(
+        // ignore: deprecated_member_use
         desiredAccuracy: LocationAccuracy.high,
       );
 
@@ -180,6 +183,71 @@ class _MapScreenState extends State<MapScreen> {
                     TextButton(
                       onPressed: () => Navigator.of(context).pop(null),
                       child: const Text('Cancel'),
+                    ),
+                    TextButton(
+                      onPressed: () async {
+                        final candidate = controller.text.trim();
+                        if (candidate.isEmpty) {
+                          showDialog(
+                            context: context,
+                            builder: (c) => AlertDialog(
+                              title: const Text('Invalid URL'),
+                              content: const Text('Please enter a URL to test.'),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(c).pop(),
+                                  child: const Text('OK'),
+                                ),
+                              ],
+                            ),
+                          );
+                          return;
+                        }
+
+                        final testUrl = candidate.endsWith('/')
+                            ? '${candidate}get-pedestrians'
+                            : '$candidate/get-pedestrians';
+
+                        try {
+                          final res = await http
+                              .get(Uri.parse(testUrl))
+                              .timeout(const Duration(seconds: 10));
+                          final ct = res.headers['content-type'] ?? '';
+                          final snippet = res.body.length > 400
+                              ? res.body.substring(0, 400)
+                              : res.body;
+                          showDialog(
+                            context: context,
+                            builder: (c) => AlertDialog(
+                              title: Text('Test result: ${res.statusCode}'),
+                              content: SingleChildScrollView(
+                                child: Text('Content-Type: $ct\n\n$snippet'),
+                              ),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(c).pop(),
+                                  child: const Text('Close'),
+                                ),
+                              ],
+                            ),
+                          );
+                        } catch (e) {
+                          showDialog(
+                            context: context,
+                            builder: (c) => AlertDialog(
+                              title: const Text('Test failed'),
+                              content: Text(e.toString()),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.of(c).pop(),
+                                  child: const Text('Close'),
+                                ),
+                              ],
+                            ),
+                          );
+                        }
+                      },
+                      child: const Text('Test'),
                     ),
                     ElevatedButton(
                       onPressed: () => Navigator.of(context).pop(controller.text.trim()),

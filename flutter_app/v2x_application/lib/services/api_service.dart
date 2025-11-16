@@ -3,6 +3,7 @@
 import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:http/http.dart' as http;
+import 'package:shared_preferences/shared_preferences.dart';
 import '../models/RSU.dart';
 import '../utils/distance_calculator.dart' as dc;
 
@@ -12,7 +13,26 @@ class ApiService {
   /// The base URL used for requests. It can be updated at runtime.
   String baseUrl;
 
-  ApiService({String? baseUrl}) : baseUrl = baseUrl ?? defaultBaseUrl;
+  ApiService({String? baseUrl}) : baseUrl = baseUrl ?? defaultBaseUrl {
+    // Load any previously persisted baseUrl (fire-and-forget)
+    _loadPersistedBaseUrl();
+  }
+
+  // Attempt to load persisted baseUrl (fire-and-forget)
+  void _loadPersistedBaseUrl() async {
+    try {
+      final sp = await SharedPreferences.getInstance();
+      final saved = sp.getString('api_base_url');
+      if (saved != null && saved.isNotEmpty && saved != baseUrl) {
+        baseUrl = saved;
+        debugPrint('Loaded persisted baseUrl: $baseUrl');
+      }
+    } catch (e) {
+      debugPrint('Failed to load persisted baseUrl: $e');
+    }
+  }
+
+  // (removed unused named constructor)
 
   // 🚶 Fetch all pedestrian alerts from Flask
   Future<List<Pedestrian>> fetchPedestrians() async {
@@ -68,6 +88,8 @@ class ApiService {
   void updateBaseUrl(String url) {
     baseUrl = url;
     debugPrint('ApiService baseUrl updated to: $baseUrl');
+    // persist
+    SharedPreferences.getInstance().then((sp) => sp.setString('api_base_url', url));
   }
 
   // 🚗 Send current vehicle coordinates to Flask

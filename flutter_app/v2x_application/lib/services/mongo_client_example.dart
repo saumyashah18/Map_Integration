@@ -4,6 +4,7 @@
 // DB work or to prototype server endpoints in Dart.
 
 import 'dart:io';
+import 'package:flutter/foundation.dart';
 import 'package:mongo_dart/mongo_dart.dart';
 import '../models/RSU.dart';
 import '../utils/distance_calculator.dart' as dc;
@@ -78,26 +79,51 @@ Future<void> main(List<String> args) async {
   final example = MongoExample(uri: uri);
   try {
     await example.open();
-    final samples = [
-      Pedestrian(id: 'p_sample_1', lat: 51.5007, lon: -0.1246, timestamp: DateTime.now(), pedestriansCount: 0, rsuId: '', obuId: ''),
-      Pedestrian(id: 'p_sample_2', lat: 51.5010, lon: -0.1250, timestamp: DateTime.now().subtract(const Duration(minutes: 5)), pedestriansCount: 0, rsuId: '', obuId: ''),
-      Pedestrian(id: 'p_sample_3', lat: 51.4995, lon: -0.1240, timestamp: DateTime.now().subtract(const Duration(minutes: 10)), pedestriansCount: 0, rsuId: '', obuId: ''),
-    ];
+final samples = [
+  Pedestrian(uid: 'p_sample_1', lat: 51.5007, lon: -0.1246, timestamp: DateTime.now(), id: '', pedestriansCount: 0, rsuId: '', obuId: ''),
+  Pedestrian(uid: 'p_sample_2', lat: 51.5010, lon: -0.1250, timestamp: DateTime.now().subtract(const Duration(minutes: 5)), id: '', pedestriansCount: 0, rsuId: '', obuId: ''),
+  Pedestrian(uid: 'p_sample_3', lat: 51.4995, lon: -0.1240, timestamp: DateTime.now().subtract(const Duration(minutes: 10)), id: '', pedestriansCount: 0, rsuId: '', obuId: ''),
+];
 
     for (final p in samples) {
       try {
-        final existing = await example.getById(p.id);
+        final pMap = p.toMap();
+        final key = (pMap['uid'] ?? pMap['id']) as String?;
+        if (key == null || key.isEmpty) {
+          if (kDebugMode) {
+            print('Skipping sample with missing id: $pMap');
+          }
+          continue;
+        }
+
+        final existing = await example.getById(key);
         if (existing == null) {
           final created = await example.create(p);
-          print('Inserted: ${created.id}');
+          final createdMap = created.toMap();
+          final createdKey = (createdMap['uid'] ?? createdMap['id']) as String? ?? '';
+          if (kDebugMode) {
+            print('Inserted: $createdKey');
+          }
         } else {
-          print('Exists: ${p.id}');
+          final existingMap = existing.toMap();
+          final existingKey = (existingMap['uid'] ?? existingMap['id']) as String? ?? '';
+          if (kDebugMode) {
+            print('Exists: $existingKey');
+          }
         }
       } catch (e) {
-        print('Error inserting ${p.id}: $e');
+        final pMap = p.toMap();
+        final key = (pMap['uid'] ?? pMap['id']) as String? ?? '';
+        if (kDebugMode) {
+          print('Error seeding $key: $e');
+        }
       }
     }
-  } finally {
+    await example.close();
+  } catch (e) {
+    if (kDebugMode) {
+      print('Error: $e');
+    }
     await example.close();
   }
 }
