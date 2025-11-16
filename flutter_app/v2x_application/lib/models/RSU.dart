@@ -17,7 +17,7 @@ class Pedestrian {
     required this.lon,
     required this.timestamp,
     required this.rsuId,
-    required this.obuId,
+    required this.obuId, required String uid,
   });
 
   factory Pedestrian.fromMap(Map<String, dynamic> m) {
@@ -47,7 +47,7 @@ class Pedestrian {
       lon: rawLon is num ? rawLon.toDouble() : double.parse(rawLon.toString()),
       timestamp: ts,
       rsuId: (m['rsuid'] ?? '').toString(),
-      obuId: (m['obuid'] ?? '').toString(),
+      obuId: (m['obuid'] ?? '').toString(), uid: '',
     );
   }
 
