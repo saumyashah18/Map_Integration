@@ -76,7 +76,7 @@ class _MapScreenState extends State<MapScreen> {
         _currentLocation = LatLng(pos.latitude, pos.longitude);
       });
 
-      debugPrint('✅ Initial location: ${pos.latitude}, ${pos.longitude}');
+      debugPrint(' Initial location: ${pos.latitude}, ${pos.longitude}');
 
       WidgetsBinding.instance.addPostFrameCallback((_) {
         _mapController.move(_currentLocation!, 15);
@@ -85,7 +85,7 @@ class _MapScreenState extends State<MapScreen> {
       _startDistanceChecking();
 
     } catch (e) {
-      debugPrint('❌ Error getting location: $e');
+      debugPrint(' Error getting location: $e');
       setState(() {
         _currentLocation = _fallbackCenter;
       });
@@ -100,7 +100,7 @@ class _MapScreenState extends State<MapScreen> {
         distanceFilter: 5,
       ),
     ).listen((Position position) {
-      debugPrint('📍 GPS Update: ${position.latitude}, ${position.longitude}');
+      debugPrint(' GPS Update: ${position.latitude}, ${position.longitude}');
 
       final newLoc = LatLng(position.latitude, position.longitude);
 
@@ -123,7 +123,7 @@ class _MapScreenState extends State<MapScreen> {
   Future<bool> _handleLocationPermission() async {
     final serviceEnabled = await Geolocator.isLocationServiceEnabled();
     if (!serviceEnabled) {
-      debugPrint('⚠️ Location services disabled');
+      debugPrint(' Location services disabled');
       return false;
     }
 
@@ -132,13 +132,13 @@ class _MapScreenState extends State<MapScreen> {
     if (permission == LocationPermission.denied) {
       permission = await Geolocator.requestPermission();
       if (permission == LocationPermission.denied) {
-        debugPrint('⚠️ Location permission denied');
+        debugPrint(' Location permission denied');
         return false;
       }
     }
 
     if (permission == LocationPermission.deniedForever) {
-      debugPrint('⚠️ Location permission permanently denied');
+      debugPrint(' Location permission permanently denied');
       return false;
     }
 
@@ -148,7 +148,7 @@ class _MapScreenState extends State<MapScreen> {
   Future<void> _fetchPedestriansFromBackend() async {
     try {
       final List<rsu.Pedestrian> data = await _apiService.fetchPedestrians();
-      debugPrint('📡 Fetched ${data.length} pedestrians from backend');
+      debugPrint(' Fetched ${data.length} pedestrians from backend');
 
       setState(() {
         _pedestrians.clear();
@@ -165,13 +165,13 @@ class _MapScreenState extends State<MapScreen> {
         _checkAllPedestrianDistances();
       }
     } catch (e) {
-      debugPrint('❌ Error fetching pedestrians: $e');
+      debugPrint(' Error fetching pedestrians: $e');
     }
   }
 
   Future<void> _spawnProxyPedestrian() async {
     if (_currentLocation == null) {
-      debugPrint('⚠️ Current location not available');
+      debugPrint(' Current location not available');
       return;
     }
 
@@ -183,7 +183,7 @@ class _MapScreenState extends State<MapScreen> {
 
     final testLocation = LatLng(testLat, testLon);
 
-    debugPrint('📍 Spawning pedestrian near (${testLat.toStringAsFixed(5)}, ${testLon.toStringAsFixed(5)})');
+    debugPrint(' Spawning pedestrian near (${testLat.toStringAsFixed(5)}, ${testLon.toStringAsFixed(5)})');
     final snappedLocation = await _apiService.snapToRoad(testLocation);
     final finalLocation = snappedLocation ?? testLocation;
 
@@ -197,7 +197,7 @@ class _MapScreenState extends State<MapScreen> {
       _pedestrians.add(proxyPed);
     });
 
-    debugPrint('✅ Spawned pedestrian at (${finalLocation.latitude.toStringAsFixed(5)}, ${finalLocation.longitude.toStringAsFixed(5)})');
+    debugPrint(' Spawned pedestrian at (${finalLocation.latitude.toStringAsFixed(5)}, ${finalLocation.longitude.toStringAsFixed(5)})');
 
     await _checkAllPedestrianDistances();
   }
@@ -251,7 +251,7 @@ class _MapScreenState extends State<MapScreen> {
 
   Future<void> _spawnMultiplePedestrians(int count) async {
     if (_currentLocation == null) {
-      debugPrint('⚠️ Current location not available');
+      debugPrint(' Current location not available');
       return;
     }
 
@@ -262,7 +262,7 @@ class _MapScreenState extends State<MapScreen> {
       await Future.delayed(const Duration(milliseconds: 200));
     }
     
-    debugPrint('✅ Spawned $count pedestrians');
+    debugPrint(' Spawned $count pedestrians');
   }
 
   void _startDistanceChecking() {
@@ -277,7 +277,7 @@ class _MapScreenState extends State<MapScreen> {
   Future<void> _checkAllPedestrianDistances() async {
     if (_currentLocation == null || _pedestrians.isEmpty) return;
 
-    debugPrint('🔍 Checking distances to ${_pedestrians.length} pedestrians...');
+    debugPrint(' Checking distances to ${_pedestrians.length} pedestrians...');
 
     try {
       final pedestrianLocations = _pedestrians.map((ped) => 
@@ -320,7 +320,7 @@ class _MapScreenState extends State<MapScreen> {
                   pedestrianId: ped.id,
                 );
 
-                debugPrint('🚨 NEW ALERT: ${ped.id} at ${distance.toStringAsFixed(0)}m');
+                debugPrint(' NEW ALERT: ${ped.id} at ${distance.toStringAsFixed(0)}m');
               }
             } else {
               if (ped.isDetected) {
@@ -332,7 +332,7 @@ class _MapScreenState extends State<MapScreen> {
         }
       });
     } catch (e) {
-      debugPrint('❌ Error checking distances: $e');
+      debugPrint(' Error checking distances: $e');
     }
   }
 
@@ -549,7 +549,7 @@ class _MapScreenState extends State<MapScreen> {
                             borderRadius: BorderRadius.circular(12),
                           ),
                           child: const Text(
-                            '🚨 DANGER',
+                            ' DANGER',
                             style: TextStyle(
                               color: Colors.white,
                               fontSize: 11,
@@ -621,7 +621,7 @@ class _MapScreenState extends State<MapScreen> {
                                             borderRadius: BorderRadius.circular(4),
                                           ),
                                           child: Text(
-                                            '📍 ${(alert.distanceMeters / 1000).toStringAsFixed(2)}km (${alert.distanceMeters.toStringAsFixed(0)}m)',
+                                            ' ${(alert.distanceMeters / 1000).toStringAsFixed(2)}km (${alert.distanceMeters.toStringAsFixed(0)}m)',
                                             style: const TextStyle(
                                               fontSize: 11,
                                               fontWeight: FontWeight.bold,

@@ -36,7 +36,7 @@ class OptimizedDistanceService {
     // Check if in backoff period
     if (_backoffUntil != null && DateTime.now().isBefore(_backoffUntil!)) {
       final waitSeconds = _backoffUntil!.difference(DateTime.now()).inSeconds;
-      debugPrint('⏸️ In backoff period, waiting ${waitSeconds}s...');
+      debugPrint(' In backoff period, waiting ${waitSeconds}s...');
       return await _getCachedOrAStarDistances(vehicleLocation, pedestrians);
     }
     
@@ -57,13 +57,13 @@ class OptimizedDistanceService {
     
     // If all cached, return immediately
     if (uncachedPedestrians.isEmpty) {
-      debugPrint('✅ All distances from cache (${cachedResults.length} pedestrians)');
+      debugPrint(' All distances from cache (${cachedResults.length} pedestrians)');
       return cachedResults;
     }
     
     // If using fallback, use A* route distances for uncached
     if (_useAStarFallback) {
-      debugPrint('🔄 Using A* fallback for ${uncachedPedestrians.length} pedestrians');
+      debugPrint(' Using A* fallback for ${uncachedPedestrians.length} pedestrians');
       final fallbackResults = await _calculateAStarDistances(vehicleLocation, uncachedPedestrians);
       return {...cachedResults, ...fallbackResults};
     }
@@ -80,7 +80,7 @@ class OptimizedDistanceService {
       
       if (batchResults.isEmpty && batch.isNotEmpty) {
         // API failed, use A* fallback for this batch
-        debugPrint('⚠️ API failed, using A* for ${batch.length} pedestrians');
+        debugPrint(' API failed, using A* for ${batch.length} pedestrians');
         final fallbackResults = await _calculateAStarDistances(vehicleLocation, batch);
         results.addAll(fallbackResults);
       } else {
@@ -136,7 +136,7 @@ class OptimizedDistanceService {
 
           return MapEntry(ped.id, distance);
         } catch (e) {
-          debugPrint('❌ A* routing failed for pair in batch: $e');
+          debugPrint(' A* routing failed for pair in batch: $e');
           final distance = double.infinity;
           _distanceCache[key] = CachedDistance(
             distanceMeters: distance,
@@ -176,7 +176,7 @@ class OptimizedDistanceService {
     try {
       final url = Uri.parse('$osrmTableUrl/$coords?sources=0&annotations=distance,duration');
       
-      debugPrint('🌐 OSRM Table API: 1 vehicle → ${pedestrians.length} pedestrians');
+      debugPrint(' OSRM Table API: 1 vehicle → ${pedestrians.length} pedestrians');
       
       final response = await http.get(url).timeout(
         const Duration(seconds: 10), // INCREASED timeout to 10s
@@ -188,7 +188,7 @@ class OptimizedDistanceService {
         _failureCount++;
         final backoffSeconds = math.min(60, math.pow(2, _failureCount).toInt());
         _backoffUntil = DateTime.now().add(Duration(seconds: backoffSeconds));
-        debugPrint('🚫 Rate limited! Backing off for ${backoffSeconds}s');
+        debugPrint(' Rate limited! Backing off for ${backoffSeconds}s');
         throw Exception('HTTP 429 - Rate Limited');
       }
       
@@ -237,18 +237,18 @@ class OptimizedDistanceService {
         throw Exception('HTTP ${response.statusCode}');
       }
     } on TimeoutException catch (e) {
-      debugPrint('❌ Distance calculation error: $e');
+      debugPrint(' Distance calculation error: $e');
       _failureCount++;
       
       // After 3 timeouts, switch to A* fallback
       if (_failureCount >= 3) {
-        debugPrint('⚠️ Too many failures, switching to A* fallback mode');
+        debugPrint(' Too many failures, switching to A* fallback mode');
         _useAStarFallback = true;
       }
       
       return {};
     } catch (e) {
-      debugPrint('❌ Distance calculation error: $e');
+      debugPrint(' Distance calculation error: $e');
       _failureCount++;
       
       if (_failureCount >= 3) {
@@ -284,7 +284,7 @@ class OptimizedDistanceService {
         );
       } catch (e) {
         // On any error, mark as unreachable (infinite distance)
-        debugPrint('❌ A* routing failed for pair: $e');
+        debugPrint(' A* routing failed for pair: $e');
         final distance = double.infinity;
         results[ped.id] = distance;
         _distanceCache[cacheKey] = CachedDistance(

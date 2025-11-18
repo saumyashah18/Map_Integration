@@ -39,12 +39,12 @@ class ApiService {
         throw FormatException('Unexpected JSON format');
       }
     } catch (e) {
-      debugPrint('❌ API Exception (fetchPedestrians): $e');
+      debugPrint(' API Exception (fetchPedestrians): $e');
       rethrow;
     }
   }
 
-  // 🚗 Send vehicle location to backend
+  //  Send vehicle location to backend
   Future<void> updateLocation(double lat, double lon) async {
     final url = Uri.parse('$baseUrl/update-location');
     try {
@@ -60,12 +60,12 @@ class ApiService {
       );
 
       if (response.statusCode == 200) {
-        debugPrint('✅ Vehicle location updated: ($lat, $lon)');
+        debugPrint(' Vehicle location updated: ($lat, $lon)');
       } else {
-        debugPrint('⚠️ Failed to update location: ${response.statusCode}');
+        debugPrint(' Failed to update location: ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint("❌ Exception updating location: $e");
+      debugPrint(" Exception updating location: $e");
     }
   }
 
@@ -95,12 +95,12 @@ class ApiService {
       );
 
       if (response.statusCode == 200 || response.statusCode == 201) {
-        debugPrint('✅ Pedestrian alert sent: $pedestrianId');
+        debugPrint(' Pedestrian alert sent: $pedestrianId');
       } else {
-        debugPrint('⚠️ Failed to update pedestrian: ${response.statusCode}');
+        debugPrint(' Failed to update pedestrian: ${response.statusCode}');
       }
     } catch (e) {
-      debugPrint('❌ Exception updating pedestrian: $e');
+      debugPrint(' Exception updating pedestrian: $e');
     }
   }
 
@@ -116,7 +116,7 @@ class ApiService {
     );
 
     try {
-      debugPrint('🌐 Calculating REAL distance from (${start.latitude},${start.longitude}) to (${end.latitude},${end.longitude})');
+      debugPrint(' Calculating REAL distance from (${start.latitude},${start.longitude}) to (${end.latitude},${end.longitude})');
       
       final response = await http.get(url).timeout(const Duration(seconds: 10));
 
@@ -128,8 +128,8 @@ class ApiService {
           final distanceMeters = (route['distance'] as num).toDouble();
           final durationSeconds = (route['duration'] as num).toDouble();
 
-          debugPrint('✅ REAL distance: ${distanceMeters.toStringAsFixed(0)}m (${(distanceMeters/1000).toStringAsFixed(2)}km)');
-          debugPrint('⏱️ ETA: ${(durationSeconds/60).toStringAsFixed(1)} minutes');
+          debugPrint(' REAL distance: ${distanceMeters.toStringAsFixed(0)}m (${(distanceMeters/1000).toStringAsFixed(2)}km)');
+          debugPrint(' ETA: ${(durationSeconds/60).toStringAsFixed(1)} minutes');
 
           return RealDistanceResult(
             distanceMeters: distanceMeters,
@@ -137,7 +137,7 @@ class ApiService {
             success: true,
           );
         } else {
-          debugPrint('⚠️ OSRM returned: ${data['code']}');
+          debugPrint(' OSRM returned: ${data['code']}');
           return RealDistanceResult(
             distanceMeters: 0,
             durationSeconds: 0,
@@ -146,7 +146,7 @@ class ApiService {
           );
         }
       } else {
-        debugPrint('❌ OSRM HTTP error: ${response.statusCode}');
+        debugPrint(' OSRM HTTP error: ${response.statusCode}');
         return RealDistanceResult(
           distanceMeters: 0,
           durationSeconds: 0,
@@ -155,7 +155,7 @@ class ApiService {
         );
       }
     } catch (e) {
-      debugPrint('❌ Distance calculation error: $e');
+      debugPrint(' Distance calculation error: $e');
       return RealDistanceResult(
         distanceMeters: 0,
         durationSeconds: 0,
@@ -165,7 +165,7 @@ class ApiService {
     }
   }
 
-  // 🎯 Check if pedestrian is nearby and calculate distance
+  //  Check if pedestrian is nearby and calculate distance
   Future<ProximityCheckResult> checkPedestrianProximity(
     LatLng vehicleLocation,
     LatLng pedestrianLocation,
@@ -190,8 +190,8 @@ class ApiService {
 
     debugPrint(
       isNearby
-          ? '🚨 NEARBY: ${distanceResult.distanceMeters.toStringAsFixed(0)}m (threshold: ${thresholdMeters.toStringAsFixed(0)}m)'
-          : '✓ Safe: ${distanceResult.distanceMeters.toStringAsFixed(0)}m away',
+          ? ' NEARBY: ${distanceResult.distanceMeters.toStringAsFixed(0)}m (threshold: ${thresholdMeters.toStringAsFixed(0)}m)'
+          : ' Safe: ${distanceResult.distanceMeters.toStringAsFixed(0)}m away',
     );
 
     return ProximityCheckResult(
@@ -201,7 +201,7 @@ class ApiService {
     );
   }
 
-  // 📍 Snap coordinate to nearest road using OSRM
+  //  Snap coordinate to nearest road using OSRM
   Future<LatLng?> snapToRoad(LatLng coordinate) async {
     final url = Uri.parse(
       'https://router.project-osrm.org/nearest/v1/driving/${coordinate.longitude},${coordinate.latitude}',
@@ -223,12 +223,12 @@ class ApiService {
             (location[0] as num).toDouble(),
           );
 
-          debugPrint('📍 Snapped to road: (${snappedLoc.latitude}, ${snappedLoc.longitude})');
+          debugPrint(' Snapped to road: (${snappedLoc.latitude}, ${snappedLoc.longitude})');
           return snappedLoc;
         }
       }
     } catch (e) {
-      debugPrint('⚠️ Road snapping error: $e');
+      debugPrint(' Road snapping error: $e');
     }
 
     return null;
